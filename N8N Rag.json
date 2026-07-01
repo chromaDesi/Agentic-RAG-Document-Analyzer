@@ -500,6 +500,7 @@
       ],
       "id": "ef97ff01-12d3-42e9-971f-91434e7917a8",
       "name": "Embeddings Google Gemini",
+      "alwaysOutputData": false,
       "credentials": {
         "googlePalmApi": {
           "id": "CRRvTuNzSIeQPqYQ",
@@ -573,9 +574,9 @@
       "typeVersion": 1.1,
       "position": [
         -128,
-        336
+        288
       ],
-      "id": "79cabb0c-889c-4e62-93e7-6f21517491b0",
+      "id": "9726bb15-17fe-4e39-8d03-8d60b8931eef",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -592,9 +593,9 @@
       "typeVersion": 1.4,
       "position": [
         64,
-        352
+        304
       ],
-      "id": "b79356ee-d3e4-43b1-9aa2-93949fe37c0a",
+      "id": "92c037d6-9779-4a71-8d1c-a09ffb35539a",
       "name": "Simple Memory"
     },
     {
@@ -610,9 +611,9 @@
       "typeVersion": 3.1,
       "position": [
         -32,
-        80
+        32
       ],
-      "id": "670fc321-8ba3-4671-95c9-812a32097ddb",
+      "id": "c25b4c8f-3781-4ec1-bc65-f624d8786972",
       "name": "Query Planner AI Agent"
     },
     {
@@ -624,9 +625,9 @@
       "typeVersion": 1.1,
       "position": [
         256,
-        384
+        336
       ],
-      "id": "b2662211-0090-41f8-8b9b-8149d225f4e3",
+      "id": "7248b8e3-3447-4527-ac74-ecb09d69d789",
       "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
@@ -653,9 +654,9 @@
       "typeVersion": 1.3,
       "position": [
         784,
-        384
+        336
       ],
-      "id": "0fb984e1-e620-492e-86e0-aa7d3687ec0e",
+      "id": "ffd8bdd3-0065-4e3e-99ac-311895bd9677",
       "name": "Supabase Vector Store",
       "credentials": {
         "supabaseApi": {
@@ -667,20 +668,20 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.output ? $json.output : $('Query Planner AI Agent').item.json.output }}",
+        "text": "={{ $json.output }}",
         "hasOutputParser": true,
         "needsFallback": true,
         "options": {
-          "systemMessage": "ROLE\nYou are the Search Agent in an agentic RAG pipeline. Your job is to execute semantic searches against a Supabase vector database, retrieve the most relevant document chunks, and return structured evidence for downstream validation and synthesis.\n\nCONTEXT\nYou receive a set of optimised queries from the Query Planner. You will embed each query, search the vector store, and return the top-k results per query along with metadata. You do not answer questions, interpret results, or filter for quality — that is the Guardrail Agent's responsibility.\n\nINPUTS\nA JSON object from the Query Planner:\n{\n  \"original_question\": \"...\",\n  \"attempt_number\": <int>,\n  \"queries\": [\n    { \"id\": \"q1\", \"text\": \"...\", \"priority\": \"primary\" | \"secondary\", \"rationale\": \"...\" }\n  ]\n}\n\nSEARCH STRATEGY\n- Execute each query independently against the Supabase vector store using semantic similarity search.\n- Retrieve the top 5 chunks for primary queries and top 3 for secondary queries.\n- Apply a minimum similarity threshold of 0.70 (cosine). Discard any result below this threshold rather than padding with low-relevance content.\n- If a query returns zero results above threshold, record its id in null_result_query_ids — do not substitute unrelated chunks.\n- Deduplicate: if the same chunk ID appears across multiple queries, include it only once, attributed to the highest-priority query that returned it.\n- Preserve the exact source metadata (document ID, chunk ID, page number, section title, similarity score) for every result. This metadata is required by the Guardrail Agent.\n- Copy the retrieved chunk text into the \"text\" field VERBATIM. Do not summarize, paraphrase, or write prose commentary about the chunks — the Guardrail and Answer agents need the original text to ground their claims.\n\nOUTPUT FORMAT\nReturn only valid JSON matching this shape. No prose, no markdown fences, no commentary outside the JSON object. You MUST echo original_question, attempt_number, and the queries array (as planned_queries) back unchanged - downstream agents rely on you to carry these forward since they cannot look them up themselves:\n{\n  \"original_question\": \"<copied exactly from your input, unchanged>\",\n  \"attempt_number\": <copied exactly from your input, unchanged>,\n  \"planned_queries\": [ /* copied exactly from the input \"queries\" array, unchanged */ ],\n  \"results\": [\n    {\n      \"query_id\": \"q1\",\n      \"chunk_id\": \"<string>\",\n      \"document_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"similarity_score\": <number>,\n      \"text\": \"<verbatim chunk text>\"\n    }\n  ],\n  \"null_result_query_ids\": [\"<query id>\", ...]\n}"
+          "systemMessage": "ROLE\nYou are the Search Agent in an agentic RAG pipeline. Your job is to execute semantic searches against a Supabase vector database, retrieve the most relevant document chunks, and return structured evidence for downstream validation and synthesis.\n\nCONTEXT\nYou receive a set of optimised queries from the Query Planner. You will embed each query, search the vector store, and return the top-k results per query along with metadata. You do not answer questions, interpret results, or filter for quality — that is the Guardrail Agent's responsibility.\n\nINPUTS\nA JSON object from the Query Planner:\n{\n  \"original_question\": \"...\",\n  \"attempt_number\": <int>,\n  \"queries\": [\n    { \"id\": \"q1\", \"text\": \"...\", \"priority\": \"primary\" | \"secondary\", \"rationale\": \"...\" }\n  ]\n}\n\nSEARCH STRATEGY\n- Execute each query independently against the Supabase vector store using semantic similarity search.\n- Retrieve the top 5 chunks for primary queries and top 3 for secondary queries.\n- Apply a minimum similarity threshold of 0.70 (cosine). Discard any result below this threshold rather than padding with low-relevance content.\n- If a query returns zero results above threshold, record its id in null_result_query_ids — do not substitute unrelated chunks.\n- Deduplicate: if the same chunk ID appears across multiple queries, include it only once, attributed to the highest-priority query that returned it.\n- Preserve the exact source metadata (document ID, chunk ID, page number, section title, similarity score) for every result. This metadata is required by the Guardrail Agent.\n- Copy the retrieved chunk text into the \"text\" field VERBATIM. Do not summarize, paraphrase, or write prose commentary about the chunks — the Guardrail and Answer agents need the original text to ground their claims.\n\nOUTPUT FORMAT\nReturn only valid JSON matching this shape. No prose, no markdown fences, no commentary outside the JSON object. You MUST echo original_question, attempt_number, and the queries array (as planned_queries) back unchanged - downstream agents rely on you to carry these forward since they cannot look them up themselves:\n{\n  \"original_question\": \"<copied exactly from your input, unchanged>\",\n  \"attempt_number\": <copied exactly from your input, unchanged>,\n  \"planned_queries\": [ /* copied exactly from the input \"queries\" array, unchanged */ ],\n  \"results\": [\n    {\n      \"query_id\": \"q1\",\n      \"chunk_id\": \"<string>\",\n      \"document_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string, use empty string if not available>\",\n      \"page\": <int, use 0 if not available>,\n      \"similarity_score\": <number>,\n      \"text\": \"<verbatim chunk text>\"\n    }\n  ],\n  \"null_result_query_ids\": [\"<query id>\", ...]\n}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
         512,
-        32
+        -16
       ],
-      "id": "d6e592a7-cd79-4dab-b4ce-abcdc6c2db7f",
+      "id": "60da53b0-db9f-4d29-a973-8a8b1fc697df",
       "name": "Search Agent",
       "retryOnFail": false,
       "waitBetweenTries": 5000
@@ -688,15 +689,15 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Echoed through unchanged - the same queries array you received as input\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" },\n          \"rationale\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"results\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query_id\": { \"type\": \"string\" },\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": [\"string\", \"null\"] },\n          \"page\": { \"type\": [\"integer\", \"null\"] },\n          \"similarity_score\": { \"type\": \"number\" },\n          \"text\": {\n            \"type\": \"string\",\n            \"description\": \"Verbatim chunk text, not paraphrased or summarized\"\n          }\n        },\n        \"required\": [\"query_id\", \"chunk_id\", \"text\"]\n      }\n    },\n    \"null_result_query_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    }\n  },\n  \"required\": [\"original_question\", \"results\", \"null_result_query_ids\"]\n}"
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Echoed through unchanged - the same queries array you received as input\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" },\n          \"rationale\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"results\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query_id\": { \"type\": \"string\" },\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": \"string\", \"description\": \"Use empty string if not available, never null\" },\n          \"page\": { \"type\": \"integer\", \"description\": \"Use 0 if not available, never null\" },\n          \"similarity_score\": { \"type\": \"number\" },\n          \"text\": {\n            \"type\": \"string\",\n            \"description\": \"Verbatim chunk text, not paraphrased or summarized\"\n          }\n        },\n        \"required\": [\"query_id\", \"chunk_id\", \"text\"]\n      }\n    },\n    \"null_result_query_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    }\n  },\n  \"required\": [\"original_question\", \"results\", \"null_result_query_ids\"]\n}"
       },
-      "id": "97d4bfb2-f071-484a-87a6-6ce9806090cb",
+      "id": "8bd6f8cd-f851-437e-a1b8-24422d146433",
       "name": "Search Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
         848,
-        176
+        128
       ]
     },
     {
@@ -709,9 +710,9 @@
       "typeVersion": 2.1,
       "position": [
         -384,
-        304
+        256
       ],
-      "id": "fa10cdc8-d82c-4bd7-8372-fee2d672b5e6",
+      "id": "e5ff2d0c-66a1-464c-b251-3dbe66ff725d",
       "name": "Webhook",
       "webhookId": "0762a10c-f2f9-4941-8e4d-db60994aef67"
     },
@@ -738,9 +739,9 @@
       "typeVersion": 2.5,
       "position": [
         544,
-        448
+        400
       ],
-      "id": "7009fbe2-2d4f-4903-87ce-c44530792c06",
+      "id": "14837aa4-fae6-4b8d-ab1c-1155de1b2f2e",
       "name": "List Documents",
       "credentials": {
         "postgres": {
@@ -761,9 +762,9 @@
       "typeVersion": 2.5,
       "position": [
         656,
-        384
+        336
       ],
-      "id": "7e406e37-c543-4878-8c96-94039c2b40b1",
+      "id": "3f7d62b6-3aac-48a4-9c5a-4b1f763c206a",
       "name": "Query Document Rows",
       "credentials": {
         "postgres": {
@@ -781,9 +782,9 @@
       "typeVersion": 1.1,
       "position": [
         976,
-        208
+        160
       ],
-      "id": "97aefc1d-5411-4685-a945-972f9e2905e9",
+      "id": "2f8eb2c5-8c45-45a0-aea8-ba778d685ed8",
       "name": "Google Gemini Chat Model2",
       "credentials": {
         "googlePalmApi": {
@@ -800,9 +801,9 @@
       "typeVersion": 1,
       "position": [
         784,
-        576
+        528
       ],
-      "id": "f7d746e0-fb38-4a86-a59b-48afb1076aba",
+      "id": "e63767f8-26d6-4ee6-bec1-20314e11410b",
       "name": "Embeddings Google Gemini1",
       "credentials": {
         "googlePalmApi": {
@@ -818,16 +819,16 @@
         "hasOutputParser": true,
         "needsFallback": true,
         "options": {
-          "systemMessage": "ROLE\nYou are the Guardrail Agent in an agentic RAG pipeline. You are the quality gate between raw retrieval and answer generation. Your job is to validate whether the retrieved evidence is sufficient, relevant, and trustworthy enough to support a grounded answer to the original user question.\n\nCONTEXT\nYou receive the original user question, the queries that were planned, and the chunks retrieved by the Search Agent. You apply two sequential checks: a relevance check and a context sufficiency check. Based on these, you either pass the evidence forward or return a structured rejection with a diagnostic reason that allows the Query Planner to revise its approach.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"planned_queries\": [ { \"id\": \"...\", \"text\": \"...\", \"priority\": \"...\" } ],\n  \"search_results\": { \"results\": [ { \"query_id\", \"chunk_id\", \"document_id\", \"document_title\", \"section\", \"page\", \"similarity_score\", \"text\" } ], \"null_result_query_ids\": [...] },\n  \"attempt_number\": <int>\n}\n\nVALIDATION PROCESS\n\nStep 1 — Relevance check\nFor each retrieved chunk, assess:\n- Is this chunk topically relevant to the user's question? (Does it address the subject matter, even if it does not fully answer it?)\n- Is the similarity score plausible given the chunk's content? (Flag any chunk where the text seems unrelated to the query despite a high score — this may indicate embedding noise.)\n- Mark each chunk as: relevant | tangential | irrelevant\n\nStep 2 — Context sufficiency check\nUsing only the chunks marked relevant or tangential, assess:\n- Coverage: Does the evidence address every primary-priority sub-query? Identify any primary sub-questions that remain unanswered. Gaps in secondary-priority sub-queries should be noted but are not coverage failures.\n- Consistency: Do the chunks agree with one another, or are there factual contradictions? If contradictions exist, note them.\n- Specificity: Is the evidence specific enough to support a precise answer, or is it generic background that would produce a vague response?\n- Completeness: Are there null-result queries (primary priority) that represent gaps the answer depends on?\n\nStep 3 — Decision\nPASS if: At least 2 relevant chunks exist, primary query coverage is ≥ 60%, no critical contradictions among primary-relevant chunks, and no primary query returned a null result. Secondary query gaps do not block a PASS — note them in coverage_notes instead.\nFAIL if: primary query coverage is below 60%, a primary query returned a null result, or there are critical contradictions among primary-relevant chunks that would make the answer misleading or unsupported.\n\nSPECIAL CASES\n- If attempt_number ≥ 3 and the evidence is marginal (not clearly insufficient, but not ideal), issue a PASS with a low_confidence flag rather than continuing to loop.\n- If zero chunks were retrieved across all queries, always FAIL with reason \"no_content_found\".\n\nOUTPUT FORMAT — PASS\nReturn only valid JSON. No prose, no markdown fences. You MUST echo original_question and attempt_number back unchanged - downstream nodes cannot look them up themselves:\n{\n  \"valid\": true,\n  \"low_confidence\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"text\": \"<verbatim chunk text, copied exactly from search_results - never paraphrase>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"irrelevant_chunk_ids\": [\"<chunk_id>\", ...],\n  \"coverage_notes\": \"<brief summary of what the evidence covers and any minor gaps>\",\n  \"contradiction_notes\": \"<none, or description of any contradictions>\",\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ]\n}\n\nOUTPUT FORMAT — FAIL\n{\n  \"valid\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ],\n  \"rejection_reason\": {\n    \"code\": \"off_topic\" | \"insufficient_coverage\" | \"contradictory_sources\" | \"low_specificity\" | \"primary_null_result\" | \"no_content_found\",\n    \"explanation\": \"<specific, actionable description of what is wrong — written so the Query Planner can diagnose the failure and adjust its queries>\",\n    \"gap_description\": \"<what information is missing or what aspect of the question is unaddressed>\",\n    \"suggested_angle\": \"<optional: a concrete direction the Query Planner might try, e.g. 'try querying for the regulatory context rather than the technical implementation'>\"\n  }\n}\n\nCONSTRAINTS\n- Never answer the user's question yourself.\n- Never fabricate chunk content or invent sources.\n- Never pass evidence you believe to be fabricated or hallucinatory.\n- Always copy chunk text verbatim into validated_chunks - never paraphrase, summarize, or omit it.\n- Always pass through original_question, attempt_number, and planned_queries unchanged - never drop, reword, or omit them.\n- Your rejection reason must be specific and actionable — vague feedback like \"not enough information\" is not acceptable.\n- Output must be valid JSON only."
+          "systemMessage": "ROLE\nYou are the Guardrail Agent in an agentic RAG pipeline. You are the quality gate between raw retrieval and answer generation. Your job is to validate whether the retrieved evidence is sufficient, relevant, and trustworthy enough to support a grounded answer to the original user question.\n\nCONTEXT\nYou receive the original user question, the queries that were planned, and the chunks retrieved by the Search Agent. You apply two sequential checks: a relevance check and a context sufficiency check. Based on these, you either pass the evidence forward or return a structured rejection with a diagnostic reason that allows the Query Planner to revise its approach.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"planned_queries\": [ { \"id\": \"...\", \"text\": \"...\", \"priority\": \"...\" } ],\n  \"search_results\": { \"results\": [ { \"query_id\", \"chunk_id\", \"document_id\", \"document_title\", \"section\", \"page\", \"similarity_score\", \"text\" } ], \"null_result_query_ids\": [...] },\n  \"attempt_number\": <int>\n}\n\nVALIDATION PROCESS\n\nStep 1 — Relevance check\nFor each retrieved chunk, assess:\n- Is this chunk topically relevant to the user's question? (Does it address the subject matter, even if it does not fully answer it?)\n- Is the similarity score plausible given the chunk's content? (Flag any chunk where the text seems unrelated to the query despite a high score — this may indicate embedding noise.)\n- Mark each chunk as: relevant | tangential | irrelevant\n\nStep 2 — Context sufficiency check\nUsing only the chunks marked relevant or tangential, assess:\n- Coverage: Does the evidence address every primary-priority sub-query? Identify any primary sub-questions that remain unanswered. Gaps in secondary-priority sub-queries should be noted but are not coverage failures.\n- Consistency: Do the chunks agree with one another, or are there factual contradictions? If contradictions exist, note them.\n- Specificity: Is the evidence specific enough to support a precise answer, or is it generic background that would produce a vague response?\n- Completeness: Are there null-result queries (primary priority) that represent gaps the answer depends on?\n\nStep 3 — Decision\nPASS if: At least 2 relevant chunks exist, primary query coverage is ≥ 60%, no critical contradictions among primary-relevant chunks, and no primary query returned a null result. Secondary query gaps do not block a PASS — note them in coverage_notes instead.\nFAIL if: primary query coverage is below 60%, a primary query returned a null result, or there are critical contradictions among primary-relevant chunks that would make the answer misleading or unsupported.\n\nSPECIAL CASES\n- If attempt_number ≥ 3 and the evidence is marginal (not clearly insufficient, but not ideal), issue a PASS with a low_confidence flag rather than continuing to loop.\n- If zero chunks were retrieved across all queries, always FAIL with reason \"no_content_found\".\n\nOUTPUT FORMAT — PASS\nReturn only valid JSON. No prose, no markdown fences. You MUST echo original_question and attempt_number back unchanged - downstream nodes cannot look them up themselves:\n{\n  \"valid\": true,\n  \"low_confidence\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string, use empty string if not available>\",\n      \"page\": <int, use 0 if not available>,\n      \"text\": \"<verbatim chunk text, copied exactly from search_results - never paraphrase>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"irrelevant_chunk_ids\": [\"<chunk_id>\", ...],\n  \"coverage_notes\": \"<brief summary of what the evidence covers and any minor gaps>\",\n  \"contradiction_notes\": \"<none, or description of any contradictions>\",\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ]\n}\n\nOUTPUT FORMAT — FAIL\n{\n  \"valid\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ],\n  \"rejection_reason\": {\n    \"code\": \"off_topic\" | \"insufficient_coverage\" | \"contradictory_sources\" | \"low_specificity\" | \"primary_null_result\" | \"no_content_found\",\n    \"explanation\": \"<specific, actionable description of what is wrong — written so the Query Planner can diagnose the failure and adjust its queries>\",\n    \"gap_description\": \"<what information is missing or what aspect of the question is unaddressed>\",\n    \"suggested_angle\": \"<optional: a concrete direction the Query Planner might try, e.g. 'try querying for the regulatory context rather than the technical implementation'>\"\n  }\n}\n\nCONSTRAINTS\n- Never answer the user's question yourself.\n- Never fabricate chunk content or invent sources.\n- Never pass evidence you believe to be fabricated or hallucinatory.\n- Always copy chunk text verbatim into validated_chunks - never paraphrase, summarize, or omit it.\n- Always pass through original_question, attempt_number, and planned_queries unchanged - never drop, reword, or omit them.\n- Your rejection reason must be specific and actionable — vague feedback like \"not enough information\" is not acceptable.\n- Output must be valid JSON only."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
         1040,
-        0
+        -48
       ],
-      "id": "100033fd-a3fe-4528-bda0-af851253bbc2",
+      "id": "e5981d48-52b9-4a64-bb4e-edf3da7c725b",
       "name": "Validation Guardrail Agent"
     },
     {
@@ -849,9 +850,18 @@
                 "operation": "true",
                 "singleValue": true
               }
+            },
+            {
+              "id": "b6c1d2e3-cap0-4f5a-9b1c-attemptcap001",
+              "leftValue": "={{ $json.output.attempt_number }}",
+              "rightValue": 4,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
             }
           ],
-          "combinator": "and"
+          "combinator": "or"
         },
         "looseTypeValidation": true,
         "options": {}
@@ -860,9 +870,9 @@
       "typeVersion": 2.3,
       "position": [
         1488,
-        144
+        96
       ],
-      "id": "9a4d335c-77f8-46ad-ac21-cfdcdead7752",
+      "id": "ea6ad9f5-f11a-4398-9155-465e1670b3e9",
       "name": "If"
     },
     {
@@ -874,9 +884,9 @@
       "typeVersion": 1.1,
       "position": [
         1776,
-        592
+        544
       ],
-      "id": "ecbc7bbe-99c4-4c7d-91ea-9e41ad803b02",
+      "id": "ffa44e2d-d0ac-4777-8462-cbd6a3e124ff",
       "name": "Google Gemini Chat Model3",
       "credentials": {
         "googlePalmApi": {
@@ -893,9 +903,9 @@
       "typeVersion": 1.5,
       "position": [
         2192,
-        176
+        128
       ],
-      "id": "9f1b5917-bfd1-4ccf-aabb-2df17d4ee3dd",
+      "id": "116b4d5a-6379-420a-8474-ec23f70cc3b4",
       "name": "Respond to Webhook"
     },
     {
@@ -904,16 +914,16 @@
         "text": "={{ JSON.stringify($json) }}",
         "needsFallback": true,
         "options": {
-          "systemMessage": "ROLE\nYou are the Answer Synthesis Agent, the final stage of an agentic RAG pipeline. Your job is to produce a clear, accurate, grounded answer to the user's original question using only the validated evidence provided to you.\n\nCONTEXT\nBy the time you receive your input, the Query Planner has constructed optimised queries, the Search Agent has retrieved relevant document chunks, and the Guardrail Agent has validated and classified those chunks. You must synthesise the relevant evidence into a response that is faithful to the source material and useful to the user. You are the only agent the user sees.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"text\": \"<verbatim chunk text>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"coverage_notes\": \"<from Guardrail Agent>\",\n  \"contradiction_notes\": \"<from Guardrail Agent>\",\n  \"low_confidence\": <bool>\n}\n\nIf any of these fields is missing or empty from your input, treat that as a signal the evidence was insufficient - do not claim the question was unanswerable purely because the input object looked incomplete without first checking whether validated_chunks actually contains usable text.\n\nSYNTHESIS PROCESS\n1. Read all relevant chunks carefully before writing anything. Map out which chunks address which aspect of the question.\n2. Prioritise chunks classified as relevant over tangential ones. Use tangential chunks only to add supporting context, never as the primary basis for a claim.\n3. Structure your answer to directly address the user's question first, then elaborate with supporting evidence.\n4. For every factual claim you make, you must be able to point to a specific chunk. Do not extrapolate, infer, or fill gaps with background knowledge.\n5. If the coverage_notes indicate a gap, acknowledge it explicitly and honestly — do not paper over it.\n6. If contradiction_notes are non-empty, surface the contradiction to the user rather than silently choosing one side.\n7. If low_confidence is true, add a brief caveat at the end of your response indicating that the supporting evidence was limited and the user may wish to verify with primary sources.\n\nCITATION FORMAT\nAfter each claim, include an inline citation in the format [Doc: <document_title>, p.<page>] or [Doc: <document_title>, §<section>] if page is unavailable. If a claim is supported by multiple chunks, cite all of them.\n\nRESPONSE FORMAT\nRespond in clear, professional prose. Do not use bullet points unless the question explicitly asks for a list. Do not use headers unless the answer has three or more distinct sections that genuinely benefit from separation. Match the register of the user's question — technical questions get technical answers, plain questions get plain language.\n\nEnd your response with a Sources section listing each document cited:\nSources\n- <document_title> (p.<page> or §<section>)\n\nCONSTRAINTS\n- Never answer from memory or training knowledge. Every factual claim must be grounded in a provided chunk.\n- Never fabricate citations, page numbers, or document titles.\n- Never present a tangential chunk as direct evidence for a central claim.\n- If you cannot answer the question from the evidence provided, say so clearly and specifically — state what information was found and what remains unaddressed. Do not hallucinate a plausible-sounding answer.\n- Never reveal the internal pipeline mechanics, agent names, or system architecture to the user."
+          "systemMessage": "ROLE\nYou are the Answer Synthesis Agent, the final stage of an agentic RAG pipeline. Your job is to produce a clear, accurate, grounded answer to the user's original question using only the validated evidence provided to you.\n\nCONTEXT\nBy the time you receive your input, the Query Planner has constructed optimised queries, the Search Agent has retrieved relevant document chunks, and the Guardrail Agent has validated and classified those chunks. You must synthesise the relevant evidence into a response that is faithful to the source material and useful to the user. You are the only agent the user sees.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string, use empty string if not available>\",\n      \"page\": <int, use 0 if not available>,\n      \"text\": \"<verbatim chunk text>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"coverage_notes\": \"<from Guardrail Agent>\",\n  \"contradiction_notes\": \"<from Guardrail Agent>\",\n  \"low_confidence\": <bool>\n}\n\nIf any of these fields is missing or empty from your input, treat that as a signal the evidence was insufficient - do not claim the question was unanswerable purely because the input object looked incomplete without first checking whether validated_chunks actually contains usable text. If validated_chunks is empty because the guardrail was force-passed after repeated attempts, say plainly that the available evidence was insufficient to fully answer the question rather than fabricating an answer.\n\nSYNTHESIS PROCESS\n1. Read all relevant chunks carefully before writing anything. Map out which chunks address which aspect of the question.\n2. Prioritise chunks classified as relevant over tangential ones. Use tangential chunks only to add supporting context, never as the primary basis for a claim.\n3. Structure your answer to directly address the user's question first, then elaborate with supporting evidence.\n4. For every factual claim you make, you must be able to point to a specific chunk. Do not extrapolate, infer, or fill gaps with background knowledge.\n5. If the coverage_notes indicate a gap, acknowledge it explicitly and honestly — do not paper over it.\n6. If contradiction_notes are non-empty, surface the contradiction to the user rather than silently choosing one side.\n7. If low_confidence is true, add a brief caveat at the end of your response indicating that the supporting evidence was limited and the user may wish to verify with primary sources.\n\nCITATION FORMAT\nAfter each claim, include an inline citation in the format [Doc: <document_title>, p.<page>] or [Doc: <document_title>, §<section>] if page is unavailable. If page is 0 and section is an empty string, neither is actually available - cite as [Doc: <document_title>] with no page or section suffix. If a claim is supported by multiple chunks, cite all of them.\n\nRESPONSE FORMAT\nRespond in clear, professional prose. Do not use bullet points unless the question explicitly asks for a list. Do not use headers unless the answer has three or more distinct sections that genuinely benefit from separation. Match the register of the user's question — technical questions get technical answers, plain questions get plain language.\n\nEnd your response with a Sources section listing each document cited:\nSources\n- <document_title> (p.<page> or §<section>)\n\nCONSTRAINTS\n- Never answer from memory or training knowledge. Every factual claim must be grounded in a provided chunk.\n- Never fabricate citations, page numbers, or document titles.\n- Never present a tangential chunk as direct evidence for a central claim.\n- If you cannot answer the question from the evidence provided, say so clearly and specifically — state what information was found and what remains unaddressed. Do not hallucinate a plausible-sounding answer.\n- Never reveal the internal pipeline mechanics, agent names, or system architecture to the user."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
         1888,
-        176
+        128
       ],
-      "id": "017d4c00-a6de-425b-aed7-d77b6183d793",
+      "id": "324b98f2-b93b-44b4-9f33-d7fe90dd14f2",
       "name": "Answer Synthesis Agent"
     },
     {
@@ -922,9 +932,9 @@
       "typeVersion": 1.4,
       "position": [
         2128,
-        592
+        544
       ],
-      "id": "429e0ba0-9613-4a2b-bf83-959ffd5f4873",
+      "id": "2f55c922-110c-4d7f-bcbe-1601650472d8",
       "name": "Postgres Chat Memory1",
       "credentials": {
         "postgres": {
@@ -936,15 +946,15 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"valid\": {\n      \"type\": \"boolean\",\n      \"description\": \"true if evidence passes validation, false if rejected\"\n    },\n    \"low_confidence\": {\n      \"type\": \"boolean\",\n      \"description\": \"true only on PASS when evidence is marginal\"\n    },\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Pass through the original user question unchanged\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Pass through the attempt_number you received unchanged\"\n    },\n    \"validated_chunks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": [\"string\", \"null\"] },\n          \"page\": { \"type\": [\"integer\", \"null\"] },\n          \"text\": { \"type\": \"string\" },\n          \"classification\": {\n            \"type\": \"string\",\n            \"enum\": [\"relevant\", \"tangential\"]\n          }\n        },\n        \"required\": [\"chunk_id\", \"text\", \"classification\"]\n      },\n      \"description\": \"Full verbatim chunks (not just IDs) for every chunk marked relevant or tangential\"\n    },\n    \"irrelevant_chunk_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"coverage_notes\": { \"type\": \"string\" },\n    \"contradiction_notes\": { \"type\": \"string\" },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Pass through unchanged, needed if retry is required\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"rejection_reason\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"code\": {\n          \"type\": \"string\",\n          \"enum\": [\"off_topic\", \"insufficient_coverage\", \"contradictory_sources\", \"low_specificity\", \"primary_null_result\", \"no_content_found\"]\n        },\n        \"explanation\": { \"type\": \"string\" },\n        \"gap_description\": { \"type\": \"string\" },\n        \"suggested_angle\": { \"type\": \"string\" }\n      }\n    }\n  },\n  \"required\": [\"valid\", \"original_question\"]\n}"
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"valid\": {\n      \"type\": \"boolean\",\n      \"description\": \"true if evidence passes validation, false if rejected\"\n    },\n    \"low_confidence\": {\n      \"type\": \"boolean\",\n      \"description\": \"true only on PASS when evidence is marginal\"\n    },\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Pass through the original user question unchanged\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Pass through the attempt_number you received unchanged\"\n    },\n    \"validated_chunks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": \"string\", \"description\": \"Use empty string if not available, never null\" },\n          \"page\": { \"type\": \"integer\", \"description\": \"Use 0 if not available, never null\" },\n          \"text\": { \"type\": \"string\" },\n          \"classification\": {\n            \"type\": \"string\",\n            \"enum\": [\"relevant\", \"tangential\"]\n          }\n        },\n        \"required\": [\"chunk_id\", \"text\", \"classification\"]\n      },\n      \"description\": \"Full verbatim chunks (not just IDs) for every chunk marked relevant or tangential\"\n    },\n    \"irrelevant_chunk_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"coverage_notes\": { \"type\": \"string\" },\n    \"contradiction_notes\": { \"type\": \"string\" },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Pass through unchanged, needed if retry is required\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"rejection_reason\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"code\": {\n          \"type\": \"string\",\n          \"enum\": [\"off_topic\", \"insufficient_coverage\", \"contradictory_sources\", \"low_specificity\", \"primary_null_result\", \"no_content_found\"]\n        },\n        \"explanation\": { \"type\": \"string\" },\n        \"gap_description\": { \"type\": \"string\" },\n        \"suggested_angle\": { \"type\": \"string\" }\n      }\n    }\n  },\n  \"required\": [\"valid\", \"original_question\"]\n}"
       },
-      "id": "38ac0996-6385-4a3a-8ed1-f5e45abfd3dc",
+      "id": "121499cc-e412-42d0-af27-4b4ce140b5b8",
       "name": "Guardrail Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
         1328,
-        208
+        160
       ]
     },
     {
@@ -956,9 +966,9 @@
       "typeVersion": 1,
       "position": [
         -32,
-        480
+        432
       ],
-      "id": "133678ae-7c21-44fd-8211-3e347772ed19",
+      "id": "6c1e4f9c-d203-4745-a647-142e8075b767",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -976,9 +986,9 @@
       "typeVersion": 1,
       "position": [
         384,
-        576
+        528
       ],
-      "id": "4799fe6f-6a8c-4f4c-983b-e4486cb448bc",
+      "id": "d1ffd62b-10e8-457e-b498-fcb74bff9f67",
       "name": "Groq Chat Model1",
       "credentials": {
         "groqApi": {
@@ -996,9 +1006,9 @@
       "typeVersion": 1,
       "position": [
         1152,
-        224
+        176
       ],
-      "id": "a05098d9-1cab-4b05-b5f3-4599420365b1",
+      "id": "f8192e75-93b3-45cf-845c-25ebfbdda2c9",
       "name": "Groq Chat Model2",
       "credentials": {
         "groqApi": {
@@ -1016,9 +1026,9 @@
       "typeVersion": 1,
       "position": [
         1952,
-        592
+        544
       ],
-      "id": "86ee79a4-ab90-494b-a5f1-98be3f920b39",
+      "id": "9f599a93-e519-442a-906b-701bdc77cb16",
       "name": "Groq Chat Model3",
       "credentials": {
         "groqApi": {
@@ -1029,15 +1039,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build the exact JSON contract the Answer Synthesis Agent's system\n// prompt expects, straight from the Guardrail Agent's parsed output.\n// We do not rely on the If node passthrough alone since that only\n// preserves whatever the Guardrail LLM happened to include.\n\nconst raw = $json.output;\nconst g = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\nreturn [{\n  json: {\n    original_question: g.original_question,\n    validated_chunks: g.validated_chunks || [],\n    coverage_notes: g.coverage_notes || '',\n    contradiction_notes: g.contradiction_notes || '',\n    low_confidence: !!g.low_confidence\n  }\n}];"
+        "jsCode": "// Build the exact JSON contract the Answer Synthesis Agent's system\n// prompt expects, straight from the Guardrail Agent's parsed output.\n// Handles both a normal PASS and a forced pass from the attempt_number\n// safety cap in the If node (which may carry valid:false with data\n// still attached, or no validated_chunks at all).\n\nconst raw = $json.output;\nconst g = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\nreturn [{\n  json: {\n    original_question: g.original_question,\n    validated_chunks: g.validated_chunks || [],\n    coverage_notes: g.coverage_notes || (g.rejection_reason ? g.rejection_reason.explanation : ''),\n    contradiction_notes: g.contradiction_notes || '',\n    low_confidence: g.low_confidence === true || g.valid === false\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1712,
-        48
+        0
       ],
-      "id": "85205b4e-08d6-46ae-bd65-dc989a060d7b",
+      "id": "a88d0166-4976-4f52-9d98-fe049a9490d4",
       "name": "Prepare Answer Input"
     },
     {
@@ -1048,9 +1058,9 @@
       "typeVersion": 2,
       "position": [
         1488,
-        560
+        512
       ],
-      "id": "b615ed1d-9056-495c-ac30-7c22132acc97",
+      "id": "5a325e1d-5d09-4eb5-ba9f-2a5c3b7a221c",
       "name": "Prepare Retry Input"
     },
     {
@@ -1061,9 +1071,9 @@
       "typeVersion": 2,
       "position": [
         864,
-        0
+        -48
       ],
-      "id": "23c2dc7a-08c6-4b0e-ac9e-ec2ec592f1f9",
+      "id": "41fd50b6-8eeb-4d1f-9b90-fbe3c02776c1",
       "name": "Prepare Guardrail Input"
     }
   ],
@@ -1528,163 +1538,7 @@
       ]
     }
   },
-  "pinData": {
-    "File Update": [
-      {
-        "kind": "drive#file",
-        "fileExtension": "pdf",
-        "copyRequiresWriterPermission": false,
-        "md5Checksum": "d40c36c4d9bb1ca63bc56d093a5dd46b",
-        "writersCanShare": true,
-        "viewedByMe": true,
-        "mimeType": "application/pdf",
-        "parents": [
-          "13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH"
-        ],
-        "thumbnailLink": "https://lh3.googleusercontent.com/drive-storage/AJQWtBPPR33cKLZ5hPM73tRPSOmCFEEDVYQj_QYsiA9MJXHtx3gMQ-5C4Mah6H04LthSzBG0VhlrP5CISTfds1SYP7Zg8VmlXSKhuZD_lFAjpKAPSV0KXw=s220",
-        "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
-        "shared": true,
-        "lastModifyingUser": {
-          "displayName": "Varun Parekh",
-          "kind": "drive#user",
-          "me": true,
-          "permissionId": "15698599693710106624",
-          "emailAddress": "varunparekh18@gmail.com",
-          "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64"
-        },
-        "owners": [
-          {
-            "displayName": "Varun Parekh",
-            "kind": "drive#user",
-            "me": true,
-            "permissionId": "15698599693710106624",
-            "emailAddress": "varunparekh18@gmail.com",
-            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64"
-          }
-        ],
-        "headRevisionId": "0B2vvK7urLxetNVdVMEJ4R004MFJyNXdkMmRRYkdaeThxL0d3PQ",
-        "webViewLink": "https://drive.google.com/file/d/13IGilrWKSx_dTlhZoWekTqc2SCPisclk/view?usp=drivesdk",
-        "webContentLink": "https://drive.google.com/uc?id=13IGilrWKSx_dTlhZoWekTqc2SCPisclk&export=download",
-        "size": "514130",
-        "viewersCanCopyContent": true,
-        "permissions": [
-          {
-            "id": "anyoneWithLink",
-            "type": "anyone",
-            "kind": "drive#permission",
-            "role": "reader",
-            "allowFileDiscovery": false
-          },
-          {
-            "id": "15698599693710106624",
-            "displayName": "Varun Parekh",
-            "type": "user",
-            "kind": "drive#permission",
-            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64",
-            "emailAddress": "varunparekh18@gmail.com",
-            "role": "owner",
-            "deleted": false,
-            "pendingOwner": false
-          }
-        ],
-        "hasThumbnail": true,
-        "spaces": [
-          "drive"
-        ],
-        "id": "13IGilrWKSx_dTlhZoWekTqc2SCPisclk",
-        "name": "Copy of Final Report + Prototype - HopeWithLove.pdf",
-        "starred": false,
-        "trashed": false,
-        "explicitlyTrashed": false,
-        "createdTime": "2026-07-01T04:44:20.840Z",
-        "modifiedTime": "2026-07-01T04:44:20.840Z",
-        "modifiedByMeTime": "2026-07-01T04:44:20.840Z",
-        "viewedByMeTime": "2026-07-01T04:44:20.840Z",
-        "quotaBytesUsed": "514130",
-        "version": "3",
-        "originalFilename": "Copy of Final Report + Prototype - HopeWithLove.pdf",
-        "ownedByMe": true,
-        "fullFileExtension": "pdf",
-        "isAppAuthorized": false,
-        "capabilities": {
-          "canChangeViewersCanCopyContent": true,
-          "canEdit": true,
-          "canCopy": true,
-          "canComment": true,
-          "canAddChildren": false,
-          "canDelete": true,
-          "canDownload": true,
-          "canListChildren": false,
-          "canRemoveChildren": false,
-          "canRename": true,
-          "canTrash": true,
-          "canReadRevisions": true,
-          "canChangeCopyRequiresWriterPermission": true,
-          "canMoveItemIntoTeamDrive": true,
-          "canUntrash": true,
-          "canModifyContent": true,
-          "canMoveItemOutOfDrive": true,
-          "canAddMyDriveParent": false,
-          "canRemoveMyDriveParent": true,
-          "canMoveItemWithinDrive": true,
-          "canShare": true,
-          "canMoveChildrenWithinDrive": false,
-          "canModifyContentRestriction": true,
-          "canChangeSecurityUpdateEnabled": false,
-          "canAcceptOwnership": false,
-          "canReadLabels": false,
-          "canModifyLabels": false,
-          "canModifyEditorContentRestriction": true,
-          "canModifyOwnerContentRestriction": true,
-          "canRemoveContentRestriction": false,
-          "canDisableInheritedPermissions": false,
-          "canEnableInheritedPermissions": true,
-          "canChangeItemDownloadRestriction": true,
-          "canStartApproval": false,
-          "canAccessViaGenAi": true
-        },
-        "thumbnailVersion": "1",
-        "modifiedByMe": true,
-        "permissionIds": [
-          "anyoneWithLink",
-          "15698599693710106624"
-        ],
-        "linkShareMetadata": {
-          "securityUpdateEligible": false,
-          "securityUpdateEnabled": true
-        },
-        "sha1Checksum": "6622c80e770dd39375398380275f36807f71cd9d",
-        "sha256Checksum": "cf66e8f997ebe7d6347def2d333f0520b419d35641545fd174c2a5a271d647ab",
-        "inheritedPermissionsDisabled": false,
-        "downloadRestrictions": {
-          "itemDownloadRestriction": {
-            "restrictedForReaders": false,
-            "restrictedForWriters": false
-          },
-          "effectiveDownloadRestrictionWithContext": {
-            "restrictedForReaders": false,
-            "restrictedForWriters": false
-          }
-        },
-        "clientEncryptionDetails": {
-          "decryptionMetadata": {
-            "wrappedKey": "",
-            "kaclsId": "0",
-            "aes256GcmChunkSize": "unset",
-            "keyFormat": "unsetKeyFormat",
-            "encryptionResourceKeyHash": ""
-          }
-        }
-      }
-    ],
-    "Chat Trigger": [
-      {
-        "action": "sendMessage",
-        "sessionId": "95a634d5f49b4a17b4e5e3ba902883bf",
-        "chatInput": "what is the purpose of the DoD MEG?"
-      }
-    ]
-  },
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d8d4dc4225eaf51cac52b11b44ac0c6214b7da104b7115380b74ba0120b48bf8"
