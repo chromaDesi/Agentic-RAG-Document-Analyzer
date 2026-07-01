@@ -1,0 +1,1692 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Vectorization of any and all documents\n\nAll documents added to this google drive folder will be chunked and vectorized, stored in a vector database to allow for our agent to utilize the texts ",
+        "height": 176,
+        "width": 416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        816
+      ],
+      "id": "27c6f570-9eec-4009-81f4-70a316f239d2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH",
+          "mode": "list",
+          "cachedResultName": "RAG IDT Doc Database",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        912
+      ],
+      "id": "234e02ee-cce8-4388-9cb2-5a725965edd5",
+      "name": "File Create",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hkvRzO4HHwwc1Vmn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH",
+          "mode": "list",
+          "cachedResultName": "RAG IDT Doc Database",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        1088
+      ],
+      "id": "7ddae74a-81e4-4f10-97af-b9b1a02c3e0c",
+      "name": "File Update",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hkvRzO4HHwwc1Vmn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -16,
+        912
+      ],
+      "id": "74b801c4-86e1-486d-a547-26251a188ffe",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "## Actual Agent\n\nProvided a Chat Input for queries to be made.\n\nUtilizes Gemini's free tier as a primary model for powering the AGents, with a fallback based on Groq. If need be, with a powerful system, the models can be swapped for local LLM's ran via Ollama.",
+        "height": 288,
+        "width": 320,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -64
+      ],
+      "id": "cde784cf-9a6e-4c6b-b752-8cfb16ef4c38",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 816,
+        "width": 2832,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -64
+      ],
+      "id": "6fcc1230-3808-4d2c-80b1-a40f596148e6",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 880,
+        "width": 2000,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        816
+      ],
+      "id": "be6f865e-67da-4cf5-82dc-ef438d43e88d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE document_metadata (\n    id TEXT PRIMARY KEY,\n    title TEXT,\n    url TEXT,\n    created_at TIMESTAMP DEFAULT NOW(),\n    schema TEXT\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -208,
+        1488
+      ],
+      "id": "5e362277-77ac-42b0-905f-82d039613bc5",
+      "name": "Create Document Metadata Table",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE document_rows (\n    id SERIAL PRIMARY KEY,\n    dataset_id TEXT REFERENCES document_metadata(id),\n    row_data JSONB  -- Store the actual row data\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        16,
+        1488
+      ],
+      "id": "35943315-c200-441e-b57a-07e72c114be7",
+      "name": "Create Document Rows Table (for Tabular Data)",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Enable the pgvector extension to work with embedding vectors\nCREATE EXTENSION IF NOT EXISTS vector;\n\n-- Create a table to store your documents\nCREATE TABLE IF NOT EXISTS documents (\n  id bigserial PRIMARY KEY,\n  content text,          -- corresponds to Document.pageContent\n  metadata jsonb,        -- corresponds to Document.metadata\n  embedding vector(3072) -- Matches your Gemini 3072-dimension embeddings\n);\n\n-- Create or replace the function to search for documents\nCREATE OR REPLACE FUNCTION match_documents (\n  query_embedding vector(3072), -- Updated from 1536 to 3072 to match the table\n  match_count int DEFAULT null,\n  filter jsonb DEFAULT '{}'\n) RETURNS TABLE (\n  id bigint,\n  content text,\n  metadata jsonb,\n  similarity float\n) \nLANGUAGE plpgsql\nAS $$\n#variable_conflict use_column\nBEGIN\n  RETURN QUERY\n  SELECT\n    id,\n    content,\n    metadata,\n    1 - (documents.embedding <=> query_embedding) AS similarity\n  FROM documents\n  WHERE metadata @> filter\n  ORDER BY documents.embedding <=> query_embedding\n  LIMIT match_count;\nEND;\n$$;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -400,
+        1488
+      ],
+      "id": "e01d263b-ac35-43b1-9a2d-4fbfe37819c7",
+      "name": "Create Documents Table and Match Function",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text ?? $json.concatenated_data }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "=file_id",
+                "value": "={{ $('Set File ID').first().json.file_id }}"
+              },
+              {
+                "name": "file_title",
+                "value": "={{ $('Set File ID').first().json.file_title }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cf784c4c-0668-4b31-94ce-d2afb1040a93",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        1376
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Set File ID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "id": "e0de5ac4-e77f-4433-bea8-554702d8daa3",
+      "name": "Download File",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        736,
+        1072
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hkvRzO4HHwwc1Vmn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents",
+        "filterType": "string",
+        "filterString": "=metadata->>file_id=like.*{{ $json.file_id }}*"
+      },
+      "id": "1f7d95e0-634d-4cc2-906d-26ea6d9685e6",
+      "name": "Delete Old Doc Rows",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        256,
+        912
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "sTzMlpLd9hPwK3u3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "10646eae-ae46-4327-a4dc-9987c2d76173",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f4536df5-d0b1-4392-bf17-b8137fb31a44",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "77d782de-169d-4a46-8a8e-a3831c04d90f",
+              "name": "file_title",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "9bde4d7f-e4f3-4ebd-9338-dce1350f9eab",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "93080995-e6ae-466a-a92b-c4b340ec0be8",
+      "name": "Set File ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "cc09e001-ab29-49e7-9c22-c90ba1ac10e6",
+      "name": "Extract PDF Text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        944,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "separator": "={{ '\\n' }}",
+        "chunkOverlap": 150
+      },
+      "id": "e1a9ee25-092d-4f05-a213-b07fcaa5291c",
+      "name": "Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "document_rows",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "dataset_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Set File ID').item.json.file_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        416,
+        1072
+      ],
+      "id": "326ce1bb-17c5-4111-bd4c-6e9bc2627ce3",
+      "name": "Delete Old Data Rows",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "sTzMlpLd9hPwK3u3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "document_metadata",
+          "mode": "list",
+          "cachedResultName": "document_metadata"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Set File ID').item.json.file_id }}",
+            "title": "={{ $('Set File ID').item.json.file_title }}",
+            "url": "={{ $('Set File ID').item.json.file_url }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "schema",
+              "displayName": "schema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        576,
+        928
+      ],
+      "id": "8c5eba80-3918-4339-8c14-eebc4007c49d",
+      "name": "Insert Document Metadata",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-2"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        1312
+      ],
+      "id": "ef97ff01-12d3-42e9-971f-91434e7917a8",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# One time DB Table Creation\n\n## Only trigger once at the time of first ever use",
+        "height": 176,
+        "width": 416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1488
+      ],
+      "id": "23d9d1f9-7fc0-41df-8406-2dffc1fd3ede",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "embeddingBatchSize": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        1184,
+        1072
+      ],
+      "id": "e7938cef-8184-4f9b-a3f9-00853738d49a",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "sTzMlpLd9hPwK3u3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3bfcf1c9-7244-49a1-af1e-55b07cf92c63",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        80
+      ],
+      "webhookId": "4d70d02e-8cc1-49a0-b481-be5fa79022a4"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        336
+      ],
+      "id": "79cabb0c-889c-4e62-93e7-6f21517491b0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 7
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        64,
+        352
+      ],
+      "id": "b79356ee-d3e4-43b1-9aa2-93949fe37c0a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.type === 'retry' ? JSON.stringify($json) : JSON.stringify({ type: 'initial', question: $json.chatInput || $json.body?.chatInput || $json.body?.question || $json.question || $json.original_question }) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "ROLE\nYou are the Query Planner for an agentic RAG system. Your sole responsibility is to transform a user's natural language question into one or more optimised retrieval queries that will maximise the quality of evidence returned from a vector database of documents.\n\nCONTEXT\nYou operate at the start of a multi-agent pipeline. Downstream, a Search Agent will embed your output and run semantic similarity searches against a Supabase vector store. A Guardrail Agent will then validate the retrieved evidence. If the evidence is rejected, the Guardrail Agent will return a structured failure reason to you, and you must revise your queries accordingly.\n\nINPUTS\nYou will receive one of two input types:\n1. INITIAL — A raw user question, e.g. { \"type\": \"initial\", \"question\": \"...\" }. There is no attempt_number on this input - treat this as attempt 1.\n2. RETRY — A previous query attempt plus the Guardrail Agent's rejection reason, e.g. { \"type\": \"retry\", \"original_question\": \"...\", \"attempt_number\": <int>, \"failed_query\": [...], \"rejection_reason\": {...} }. This input already contains the correct attempt_number - do not increment it further, just pass it through as-is.\n\nBEHAVIOUR\nWhen handling an INITIAL request:\n- Identify the core information need behind the question. Strip filler, resolve pronouns, and make implicit assumptions explicit.\n- For genuinely complex or multi-part questions, decompose into 2–4 focused sub-queries, each targeting a distinct aspect of the information need.\n- For simple factual, identification, or single-fact questions (e.g. \"which X is Y\", \"what is the value of Z\", \"who/when/where is...\"), produce a single primary query only. Do not invent additional sub-queries — such as historical background, intent, context, or related concepts — unless the user's question explicitly asks for that dimension. A correct, complete answer to a simple question should not be penalized for lacking depth nobody requested.\n- For each sub-query, write a concise, keyword-dense statement (not a question) that captures what a relevant document passage would say. Favour noun phrases and domain-specific terminology over conversational phrasing, since these align better with how source documents are written.\n- If the question implies a specific time period, entity, or document type, include those constraints explicitly.\n- Assign a retrieval priority (primary / secondary) to each sub-query so the Search Agent knows which results matter most.\n- Set attempt_number to 1 in your output.\n- Always echo the original user question back verbatim in a top-level \"original_question\" field of your output so downstream agents never lose it.\n\nWhen handling a RETRY request:\n- Carefully read the rejection_reason. It will specify what was wrong: e.g. \"retrieved chunks are off-topic\", \"evidence lacks specificity\", \"contradictory sources returned\", \"no content found\".\n- Diagnose the root cause: wrong terminology, too broad, too narrow, missing context, ambiguous phrasing.\n- Produce a revised set of queries that directly address the stated failure. Do not simply paraphrase the previous query — make a substantive change in vocabulary, scope, or framing.\n- You may add, remove, or split sub-queries as needed.\n- Always echo the original_question you were given back verbatim in your output.\n- Always echo the attempt_number you were given back verbatim in your output - do not increment it, that has already been done for you.\n\nOUTPUT FORMAT\nReturn only valid JSON. No prose, no markdown fences.\n{\n  \"original_question\": \"<the user's original question, verbatim>\",\n  \"attempt_number\": <int, per the rules above>,\n  \"queries\": [\n    {\n      \"id\": \"q1\",\n      \"text\": \"<retrieval-optimised statement>\",\n      \"priority\": \"primary\" | \"secondary\",\n      \"rationale\": \"<one sentence explaining what this sub-query is targeting>\"\n    }\n  ],\n  \"revision_notes\": \"<empty string on first attempt; on retry, briefly describe what changed and why>\"\n}\n\nCONSTRAINTS\n- Never answer the user's question yourself.\n- Never fabricate document titles, section names, or entities.\n- Keep each query text under 40 words.\n- Output must be parseable JSON — no trailing commas, no comments, no em dashes."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        80
+      ],
+      "id": "670fc321-8ba3-4671-95c9-812a32097ddb",
+      "name": "Query Planner AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        384
+      ],
+      "id": "b2662211-0090-41f8-8b9b-8149d225f4e3",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use RAG to look up information in the knowledgebase.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        384
+      ],
+      "id": "0fb984e1-e620-492e-86e0-aa7d3687ec0e",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "sTzMlpLd9hPwK3u3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output ? $json.output : $('Query Planner AI Agent').item.json.output }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "ROLE\nYou are the Search Agent in an agentic RAG pipeline. Your job is to execute semantic searches against a Supabase vector database, retrieve the most relevant document chunks, and return structured evidence for downstream validation and synthesis.\n\nCONTEXT\nYou receive a set of optimised queries from the Query Planner. You will embed each query, search the vector store, and return the top-k results per query along with metadata. You do not answer questions, interpret results, or filter for quality — that is the Guardrail Agent's responsibility.\n\nINPUTS\nA JSON object from the Query Planner:\n{\n  \"original_question\": \"...\",\n  \"attempt_number\": <int>,\n  \"queries\": [\n    { \"id\": \"q1\", \"text\": \"...\", \"priority\": \"primary\" | \"secondary\", \"rationale\": \"...\" }\n  ]\n}\n\nSEARCH STRATEGY\n- Execute each query independently against the Supabase vector store using semantic similarity search.\n- Retrieve the top 5 chunks for primary queries and top 3 for secondary queries.\n- Apply a minimum similarity threshold of 0.70 (cosine). Discard any result below this threshold rather than padding with low-relevance content.\n- If a query returns zero results above threshold, record its id in null_result_query_ids — do not substitute unrelated chunks.\n- Deduplicate: if the same chunk ID appears across multiple queries, include it only once, attributed to the highest-priority query that returned it.\n- Preserve the exact source metadata (document ID, chunk ID, page number, section title, similarity score) for every result. This metadata is required by the Guardrail Agent.\n- Copy the retrieved chunk text into the \"text\" field VERBATIM. Do not summarize, paraphrase, or write prose commentary about the chunks — the Guardrail and Answer agents need the original text to ground their claims.\n\nOUTPUT FORMAT\nReturn only valid JSON matching this shape. No prose, no markdown fences, no commentary outside the JSON object. You MUST echo original_question, attempt_number, and the queries array (as planned_queries) back unchanged - downstream agents rely on you to carry these forward since they cannot look them up themselves:\n{\n  \"original_question\": \"<copied exactly from your input, unchanged>\",\n  \"attempt_number\": <copied exactly from your input, unchanged>,\n  \"planned_queries\": [ /* copied exactly from the input \"queries\" array, unchanged */ ],\n  \"results\": [\n    {\n      \"query_id\": \"q1\",\n      \"chunk_id\": \"<string>\",\n      \"document_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"similarity_score\": <number>,\n      \"text\": \"<verbatim chunk text>\"\n    }\n  ],\n  \"null_result_query_ids\": [\"<query id>\", ...]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        512,
+        32
+      ],
+      "id": "d6e592a7-cd79-4dab-b4ce-abcdc6c2db7f",
+      "name": "Search Agent",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Echoed through unchanged from the input you received\"\n    },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Echoed through unchanged - the same queries array you received as input\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" },\n          \"rationale\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"results\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query_id\": { \"type\": \"string\" },\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": [\"string\", \"null\"] },\n          \"page\": { \"type\": [\"integer\", \"null\"] },\n          \"similarity_score\": { \"type\": \"number\" },\n          \"text\": {\n            \"type\": \"string\",\n            \"description\": \"Verbatim chunk text, not paraphrased or summarized\"\n          }\n        },\n        \"required\": [\"query_id\", \"chunk_id\", \"text\"]\n      }\n    },\n    \"null_result_query_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    }\n  },\n  \"required\": [\"original_question\", \"results\", \"null_result_query_ids\"]\n}"
+      },
+      "id": "97d4bfb2-f071-484a-87a6-6ce9806090cb",
+      "name": "Search Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0762a10c-f2f9-4941-8e4d-db60994aef67",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        304
+      ],
+      "id": "fa10cdc8-d82c-4bd7-8372-fee2d672b5e6",
+      "name": "Webhook",
+      "webhookId": "0762a10c-f2f9-4941-8e4d-db60994aef67"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to fetch all available documents, including the table schema if the file is a CSV or Excel file.",
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "document_metadata",
+          "mode": "list",
+          "cachedResultName": "document_metadata"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        544,
+        448
+      ],
+      "id": "7009fbe2-2d4f-4903-87ce-c44530792c06",
+      "name": "List Documents",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Run a SQL query - use this to query from the document_rows table once you know the file ID you are querying. dataset_id is the file_id and you are always using the row_data for filtering, which is a jsonb field that has all the keys from the file schema given in the document_metadata table.\n\nExample query:\n\nSELECT AVG((row_data->>'revenue')::numeric)\nFROM document_rows\nWHERE dataset_id = '123';\n\nExample query 2:\n\nSELECT \n    row_data->>'category' as category,\n    SUM((row_data->>'sales')::numeric) as total_sales\nFROM dataset_rows\nWHERE dataset_id = '123'\nGROUP BY row_data->>'category';",
+        "operation": "executeQuery",
+        "query": "SELECT * FROM (\n  {{ $fromAI('sql_query', 'A single SELECT statement, no trailing semicolon').replace(';', '') }}\n) AS limited_result\nLIMIT 100",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        656,
+        384
+      ],
+      "id": "7e406e37-c543-4878-8c96-94039c2b40b1",
+      "name": "Query Document Rows",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        208
+      ],
+      "id": "97aefc1d-5411-4685-a945-972f9e2905e9",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-2"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        784,
+        576
+      ],
+      "id": "f7d746e0-fb38-4a86-a59b-48afb1076aba",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json) }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "ROLE\nYou are the Guardrail Agent in an agentic RAG pipeline. You are the quality gate between raw retrieval and answer generation. Your job is to validate whether the retrieved evidence is sufficient, relevant, and trustworthy enough to support a grounded answer to the original user question.\n\nCONTEXT\nYou receive the original user question, the queries that were planned, and the chunks retrieved by the Search Agent. You apply two sequential checks: a relevance check and a context sufficiency check. Based on these, you either pass the evidence forward or return a structured rejection with a diagnostic reason that allows the Query Planner to revise its approach.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"planned_queries\": [ { \"id\": \"...\", \"text\": \"...\", \"priority\": \"...\" } ],\n  \"search_results\": { \"results\": [ { \"query_id\", \"chunk_id\", \"document_id\", \"document_title\", \"section\", \"page\", \"similarity_score\", \"text\" } ], \"null_result_query_ids\": [...] },\n  \"attempt_number\": <int>\n}\n\nVALIDATION PROCESS\n\nStep 1 — Relevance check\nFor each retrieved chunk, assess:\n- Is this chunk topically relevant to the user's question? (Does it address the subject matter, even if it does not fully answer it?)\n- Is the similarity score plausible given the chunk's content? (Flag any chunk where the text seems unrelated to the query despite a high score — this may indicate embedding noise.)\n- Mark each chunk as: relevant | tangential | irrelevant\n\nStep 2 — Context sufficiency check\nUsing only the chunks marked relevant or tangential, assess:\n- Coverage: Does the evidence address every primary-priority sub-query? Identify any primary sub-questions that remain unanswered. Gaps in secondary-priority sub-queries should be noted but are not coverage failures.\n- Consistency: Do the chunks agree with one another, or are there factual contradictions? If contradictions exist, note them.\n- Specificity: Is the evidence specific enough to support a precise answer, or is it generic background that would produce a vague response?\n- Completeness: Are there null-result queries (primary priority) that represent gaps the answer depends on?\n\nStep 3 — Decision\nPASS if: At least 2 relevant chunks exist, primary query coverage is ≥ 60%, no critical contradictions among primary-relevant chunks, and no primary query returned a null result. Secondary query gaps do not block a PASS — note them in coverage_notes instead.\nFAIL if: primary query coverage is below 60%, a primary query returned a null result, or there are critical contradictions among primary-relevant chunks that would make the answer misleading or unsupported.\n\nSPECIAL CASES\n- If attempt_number ≥ 3 and the evidence is marginal (not clearly insufficient, but not ideal), issue a PASS with a low_confidence flag rather than continuing to loop.\n- If zero chunks were retrieved across all queries, always FAIL with reason \"no_content_found\".\n\nOUTPUT FORMAT — PASS\nReturn only valid JSON. No prose, no markdown fences. You MUST echo original_question and attempt_number back unchanged - downstream nodes cannot look them up themselves:\n{\n  \"valid\": true,\n  \"low_confidence\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"text\": \"<verbatim chunk text, copied exactly from search_results - never paraphrase>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"irrelevant_chunk_ids\": [\"<chunk_id>\", ...],\n  \"coverage_notes\": \"<brief summary of what the evidence covers and any minor gaps>\",\n  \"contradiction_notes\": \"<none, or description of any contradictions>\",\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ]\n}\n\nOUTPUT FORMAT — FAIL\n{\n  \"valid\": false,\n  \"original_question\": \"<pass through the original_question you were given, verbatim>\",\n  \"attempt_number\": <pass through the attempt_number you were given, unchanged>,\n  \"planned_queries\": [ /* pass through exactly as received, unchanged */ ],\n  \"rejection_reason\": {\n    \"code\": \"off_topic\" | \"insufficient_coverage\" | \"contradictory_sources\" | \"low_specificity\" | \"primary_null_result\" | \"no_content_found\",\n    \"explanation\": \"<specific, actionable description of what is wrong — written so the Query Planner can diagnose the failure and adjust its queries>\",\n    \"gap_description\": \"<what information is missing or what aspect of the question is unaddressed>\",\n    \"suggested_angle\": \"<optional: a concrete direction the Query Planner might try, e.g. 'try querying for the regulatory context rather than the technical implementation'>\"\n  }\n}\n\nCONSTRAINTS\n- Never answer the user's question yourself.\n- Never fabricate chunk content or invent sources.\n- Never pass evidence you believe to be fabricated or hallucinatory.\n- Always copy chunk text verbatim into validated_chunks - never paraphrase, summarize, or omit it.\n- Always pass through original_question, attempt_number, and planned_queries unchanged - never drop, reword, or omit them.\n- Your rejection reason must be specific and actionable — vague feedback like \"not enough information\" is not acceptable.\n- Output must be valid JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "100033fd-a3fe-4528-bda0-af851253bbc2",
+      "name": "Validation Guardrail Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "87213180-584a-485f-bb23-204857737b7a",
+              "leftValue": "={{ $json.output.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1488,
+        144
+      ],
+      "id": "9a4d335c-77f8-46ad-ac21-cfdcdead7752",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        592
+      ],
+      "id": "ecbc7bbe-99c4-4c7d-91ea-9e41ad803b02",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CRRvTuNzSIeQPqYQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2192,
+        176
+      ],
+      "id": "9f1b5917-bfd1-4ccf-aabb-2df17d4ee3dd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "ROLE\nYou are the Answer Synthesis Agent, the final stage of an agentic RAG pipeline. Your job is to produce a clear, accurate, grounded answer to the user's original question using only the validated evidence provided to you.\n\nCONTEXT\nBy the time you receive your input, the Query Planner has constructed optimised queries, the Search Agent has retrieved relevant document chunks, and the Guardrail Agent has validated and classified those chunks. You must synthesise the relevant evidence into a response that is faithful to the source material and useful to the user. You are the only agent the user sees.\n\nINPUTS\n{\n  \"original_question\": \"<string>\",\n  \"validated_chunks\": [\n    {\n      \"chunk_id\": \"<string>\",\n      \"document_title\": \"<string>\",\n      \"section\": \"<string or null>\",\n      \"page\": <int or null>,\n      \"text\": \"<verbatim chunk text>\",\n      \"classification\": \"relevant\" | \"tangential\"\n    }\n  ],\n  \"coverage_notes\": \"<from Guardrail Agent>\",\n  \"contradiction_notes\": \"<from Guardrail Agent>\",\n  \"low_confidence\": <bool>\n}\n\nIf any of these fields is missing or empty from your input, treat that as a signal the evidence was insufficient - do not claim the question was unanswerable purely because the input object looked incomplete without first checking whether validated_chunks actually contains usable text.\n\nSYNTHESIS PROCESS\n1. Read all relevant chunks carefully before writing anything. Map out which chunks address which aspect of the question.\n2. Prioritise chunks classified as relevant over tangential ones. Use tangential chunks only to add supporting context, never as the primary basis for a claim.\n3. Structure your answer to directly address the user's question first, then elaborate with supporting evidence.\n4. For every factual claim you make, you must be able to point to a specific chunk. Do not extrapolate, infer, or fill gaps with background knowledge.\n5. If the coverage_notes indicate a gap, acknowledge it explicitly and honestly — do not paper over it.\n6. If contradiction_notes are non-empty, surface the contradiction to the user rather than silently choosing one side.\n7. If low_confidence is true, add a brief caveat at the end of your response indicating that the supporting evidence was limited and the user may wish to verify with primary sources.\n\nCITATION FORMAT\nAfter each claim, include an inline citation in the format [Doc: <document_title>, p.<page>] or [Doc: <document_title>, §<section>] if page is unavailable. If a claim is supported by multiple chunks, cite all of them.\n\nRESPONSE FORMAT\nRespond in clear, professional prose. Do not use bullet points unless the question explicitly asks for a list. Do not use headers unless the answer has three or more distinct sections that genuinely benefit from separation. Match the register of the user's question — technical questions get technical answers, plain questions get plain language.\n\nEnd your response with a Sources section listing each document cited:\nSources\n- <document_title> (p.<page> or §<section>)\n\nCONSTRAINTS\n- Never answer from memory or training knowledge. Every factual claim must be grounded in a provided chunk.\n- Never fabricate citations, page numbers, or document titles.\n- Never present a tangential chunk as direct evidence for a central claim.\n- If you cannot answer the question from the evidence provided, say so clearly and specifically — state what information was found and what remains unaddressed. Do not hallucinate a plausible-sounding answer.\n- Never reveal the internal pipeline mechanics, agent names, or system architecture to the user."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1888,
+        176
+      ],
+      "id": "017d4c00-a6de-425b-aed7-d77b6183d793",
+      "name": "Answer Synthesis Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        2128,
+        592
+      ],
+      "id": "429e0ba0-9613-4a2b-bf83-959ffd5f4873",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "9k8lUHWGYil4xuqD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"valid\": {\n      \"type\": \"boolean\",\n      \"description\": \"true if evidence passes validation, false if rejected\"\n    },\n    \"low_confidence\": {\n      \"type\": \"boolean\",\n      \"description\": \"true only on PASS when evidence is marginal\"\n    },\n    \"original_question\": {\n      \"type\": \"string\",\n      \"description\": \"Pass through the original user question unchanged\"\n    },\n    \"attempt_number\": {\n      \"type\": \"integer\",\n      \"description\": \"Pass through the attempt_number you received unchanged\"\n    },\n    \"validated_chunks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"chunk_id\": { \"type\": \"string\" },\n          \"document_title\": { \"type\": \"string\" },\n          \"section\": { \"type\": [\"string\", \"null\"] },\n          \"page\": { \"type\": [\"integer\", \"null\"] },\n          \"text\": { \"type\": \"string\" },\n          \"classification\": {\n            \"type\": \"string\",\n            \"enum\": [\"relevant\", \"tangential\"]\n          }\n        },\n        \"required\": [\"chunk_id\", \"text\", \"classification\"]\n      },\n      \"description\": \"Full verbatim chunks (not just IDs) for every chunk marked relevant or tangential\"\n    },\n    \"irrelevant_chunk_ids\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"coverage_notes\": { \"type\": \"string\" },\n    \"contradiction_notes\": { \"type\": \"string\" },\n    \"planned_queries\": {\n      \"type\": \"array\",\n      \"description\": \"Pass through unchanged, needed if retry is required\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"text\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"rejection_reason\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"code\": {\n          \"type\": \"string\",\n          \"enum\": [\"off_topic\", \"insufficient_coverage\", \"contradictory_sources\", \"low_specificity\", \"primary_null_result\", \"no_content_found\"]\n        },\n        \"explanation\": { \"type\": \"string\" },\n        \"gap_description\": { \"type\": \"string\" },\n        \"suggested_angle\": { \"type\": \"string\" }\n      }\n    }\n  },\n  \"required\": [\"valid\", \"original_question\"]\n}"
+      },
+      "id": "38ac0996-6385-4a3a-8ed1-f5e45abfd3dc",
+      "name": "Guardrail Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        480
+      ],
+      "id": "133678ae-7c21-44fd-8211-3e347772ed19",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "VwB9Uzhw1cBXMToK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        384,
+        576
+      ],
+      "id": "4799fe6f-6a8c-4f4c-983b-e4486cb448bc",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "VwB9Uzhw1cBXMToK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        224
+      ],
+      "id": "a05098d9-1cab-4b05-b5f3-4599420365b1",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "VwB9Uzhw1cBXMToK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        592
+      ],
+      "id": "86ee79a4-ab90-494b-a5f1-98be3f920b39",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "VwB9Uzhw1cBXMToK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the exact JSON contract the Answer Synthesis Agent's system\n// prompt expects, straight from the Guardrail Agent's parsed output.\n// We do not rely on the If node passthrough alone since that only\n// preserves whatever the Guardrail LLM happened to include.\n\nconst raw = $json.output;\nconst g = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\nreturn [{\n  json: {\n    original_question: g.original_question,\n    validated_chunks: g.validated_chunks || [],\n    coverage_notes: g.coverage_notes || '',\n    contradiction_notes: g.contradiction_notes || '',\n    low_confidence: !!g.low_confidence\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        48
+      ],
+      "id": "85205b4e-08d6-46ae-bd65-dc989a060d7b",
+      "name": "Prepare Answer Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pure passthrough of the current item - no $('NodeName') lookups.\n\nconst raw = $json.output;\nconst g = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\nreturn [{\n  json: {\n    type: 'retry',\n    original_question: g.original_question,\n    attempt_number: (g.attempt_number || 1) + 1,\n    failed_query: g.planned_queries || [],\n    rejection_reason: g.rejection_reason || {}\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        560
+      ],
+      "id": "b615ed1d-9056-495c-ac30-7c22132acc97",
+      "name": "Prepare Retry Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pure passthrough of the current item - no $('NodeName') lookups.\n// The Search Agent already echoed original_question, attempt_number,\n// and planned_queries forward in its own output, so we just unpack it.\n\nconst raw = $json.output;\nconst s = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\nreturn [{\n  json: {\n    original_question: s.original_question,\n    planned_queries: s.planned_queries || [],\n    search_results: {\n      results: s.results || [],\n      null_result_query_ids: s.null_result_query_ids || []\n    },\n    attempt_number: s.attempt_number || 1\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        0
+      ],
+      "id": "23c2dc7a-08c6-4b0e-ac9e-ec2ec592f1f9",
+      "name": "Prepare Guardrail Input"
+    }
+  ],
+  "connections": {
+    "File Create": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Update": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Set File ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Document Metadata Table": {
+      "main": [
+        [
+          {
+            "node": "Create Document Rows Table (for Tabular Data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Documents Table and Match Function": {
+      "main": [
+        [
+          {
+            "node": "Create Document Metadata Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Old Doc Rows": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Data Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set File ID": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Doc Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF Text": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Old Data Rows": {
+      "main": [
+        [
+          {
+            "node": "Insert Document Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Document Metadata": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Planner AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Guardrail Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Documents": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Document Rows": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Validation Guardrail Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Guardrail Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Prepare Answer Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Retry Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer Synthesis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Synthesis Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Answer Synthesis Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrail Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Validation Guardrail Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Search Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Validation Guardrail Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer Synthesis Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare Answer Input": {
+      "main": [
+        [
+          {
+            "node": "Answer Synthesis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Retry Input": {
+      "main": [
+        [
+          {
+            "node": "Query Planner AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Guardrail Input": {
+      "main": [
+        [
+          {
+            "node": "Validation Guardrail Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "File Update": [
+      {
+        "kind": "drive#file",
+        "fileExtension": "pdf",
+        "copyRequiresWriterPermission": false,
+        "md5Checksum": "d40c36c4d9bb1ca63bc56d093a5dd46b",
+        "writersCanShare": true,
+        "viewedByMe": true,
+        "mimeType": "application/pdf",
+        "parents": [
+          "13CjAa8jKJHd3z_HhrowFbB4aEBhLL9tH"
+        ],
+        "thumbnailLink": "https://lh3.googleusercontent.com/drive-storage/AJQWtBPPR33cKLZ5hPM73tRPSOmCFEEDVYQj_QYsiA9MJXHtx3gMQ-5C4Mah6H04LthSzBG0VhlrP5CISTfds1SYP7Zg8VmlXSKhuZD_lFAjpKAPSV0KXw=s220",
+        "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
+        "shared": true,
+        "lastModifyingUser": {
+          "displayName": "Varun Parekh",
+          "kind": "drive#user",
+          "me": true,
+          "permissionId": "15698599693710106624",
+          "emailAddress": "varunparekh18@gmail.com",
+          "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64"
+        },
+        "owners": [
+          {
+            "displayName": "Varun Parekh",
+            "kind": "drive#user",
+            "me": true,
+            "permissionId": "15698599693710106624",
+            "emailAddress": "varunparekh18@gmail.com",
+            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64"
+          }
+        ],
+        "headRevisionId": "0B2vvK7urLxetNVdVMEJ4R004MFJyNXdkMmRRYkdaeThxL0d3PQ",
+        "webViewLink": "https://drive.google.com/file/d/13IGilrWKSx_dTlhZoWekTqc2SCPisclk/view?usp=drivesdk",
+        "webContentLink": "https://drive.google.com/uc?id=13IGilrWKSx_dTlhZoWekTqc2SCPisclk&export=download",
+        "size": "514130",
+        "viewersCanCopyContent": true,
+        "permissions": [
+          {
+            "id": "anyoneWithLink",
+            "type": "anyone",
+            "kind": "drive#permission",
+            "role": "reader",
+            "allowFileDiscovery": false
+          },
+          {
+            "id": "15698599693710106624",
+            "displayName": "Varun Parekh",
+            "type": "user",
+            "kind": "drive#permission",
+            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocL5raTdc_d6vrY7cTAxaqeaxZFDj91lpxAhoU_yhWzGBMR_7FJH=s64",
+            "emailAddress": "varunparekh18@gmail.com",
+            "role": "owner",
+            "deleted": false,
+            "pendingOwner": false
+          }
+        ],
+        "hasThumbnail": true,
+        "spaces": [
+          "drive"
+        ],
+        "id": "13IGilrWKSx_dTlhZoWekTqc2SCPisclk",
+        "name": "Copy of Final Report + Prototype - HopeWithLove.pdf",
+        "starred": false,
+        "trashed": false,
+        "explicitlyTrashed": false,
+        "createdTime": "2026-07-01T04:44:20.840Z",
+        "modifiedTime": "2026-07-01T04:44:20.840Z",
+        "modifiedByMeTime": "2026-07-01T04:44:20.840Z",
+        "viewedByMeTime": "2026-07-01T04:44:20.840Z",
+        "quotaBytesUsed": "514130",
+        "version": "3",
+        "originalFilename": "Copy of Final Report + Prototype - HopeWithLove.pdf",
+        "ownedByMe": true,
+        "fullFileExtension": "pdf",
+        "isAppAuthorized": false,
+        "capabilities": {
+          "canChangeViewersCanCopyContent": true,
+          "canEdit": true,
+          "canCopy": true,
+          "canComment": true,
+          "canAddChildren": false,
+          "canDelete": true,
+          "canDownload": true,
+          "canListChildren": false,
+          "canRemoveChildren": false,
+          "canRename": true,
+          "canTrash": true,
+          "canReadRevisions": true,
+          "canChangeCopyRequiresWriterPermission": true,
+          "canMoveItemIntoTeamDrive": true,
+          "canUntrash": true,
+          "canModifyContent": true,
+          "canMoveItemOutOfDrive": true,
+          "canAddMyDriveParent": false,
+          "canRemoveMyDriveParent": true,
+          "canMoveItemWithinDrive": true,
+          "canShare": true,
+          "canMoveChildrenWithinDrive": false,
+          "canModifyContentRestriction": true,
+          "canChangeSecurityUpdateEnabled": false,
+          "canAcceptOwnership": false,
+          "canReadLabels": false,
+          "canModifyLabels": false,
+          "canModifyEditorContentRestriction": true,
+          "canModifyOwnerContentRestriction": true,
+          "canRemoveContentRestriction": false,
+          "canDisableInheritedPermissions": false,
+          "canEnableInheritedPermissions": true,
+          "canChangeItemDownloadRestriction": true,
+          "canStartApproval": false,
+          "canAccessViaGenAi": true
+        },
+        "thumbnailVersion": "1",
+        "modifiedByMe": true,
+        "permissionIds": [
+          "anyoneWithLink",
+          "15698599693710106624"
+        ],
+        "linkShareMetadata": {
+          "securityUpdateEligible": false,
+          "securityUpdateEnabled": true
+        },
+        "sha1Checksum": "6622c80e770dd39375398380275f36807f71cd9d",
+        "sha256Checksum": "cf66e8f997ebe7d6347def2d333f0520b419d35641545fd174c2a5a271d647ab",
+        "inheritedPermissionsDisabled": false,
+        "downloadRestrictions": {
+          "itemDownloadRestriction": {
+            "restrictedForReaders": false,
+            "restrictedForWriters": false
+          },
+          "effectiveDownloadRestrictionWithContext": {
+            "restrictedForReaders": false,
+            "restrictedForWriters": false
+          }
+        },
+        "clientEncryptionDetails": {
+          "decryptionMetadata": {
+            "wrappedKey": "",
+            "kaclsId": "0",
+            "aes256GcmChunkSize": "unset",
+            "keyFormat": "unsetKeyFormat",
+            "encryptionResourceKeyHash": ""
+          }
+        }
+      }
+    ],
+    "Chat Trigger": [
+      {
+        "action": "sendMessage",
+        "sessionId": "95a634d5f49b4a17b4e5e3ba902883bf",
+        "chatInput": "what is the purpose of the DoD MEG?"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d8d4dc4225eaf51cac52b11b44ac0c6214b7da104b7115380b74ba0120b48bf8"
+  }
+}
